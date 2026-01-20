@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<title>Proxy List</title>
+<style>
+body { font-family: sans-serif; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ddd; padding: 6px; }
+button { cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h2>代理列表</h2>
+
+国家 <select id="country" multiple></select>
+协议 <select id="protocol" multiple>
+  <option value="https">HTTPS</option>
+  <option value="socks4">SOCKS4</option>
+  <option value="socks5">SOCKS5</option>
+</select>
+
+<table>
+<thead>
+<tr>
+<th>IP</th><th>端口</th><th>协议</th><th>国家</th>
+<th>延迟</th><th>成功率</th><th>上次检测</th><th>复制</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<script>
+let data = [];
+
+fetch('proxies.json').then(r => r.json()).then(d => {
+  data = d;
+  init(); render();
+});
+
+function init() {
+  const cs = [...new Set(data.map(i => i.country_cn))];
+  cs.forEach(c => {
+    let o = document.createElement('option');
+    o.value = c; o.text = c;
+    country.appendChild(o);
+  });
+}
+
+function render() {
+  tbody.innerHTML = '';
+  const cs = [...country.selectedOptions].map(o => o.value);
+  const ps = [...protocol.selectedOptions].map(o => o.value);
+
+  data.filter(i =>
+    (!cs.length || cs.includes(i.country_cn)) &&
+    (!ps.length || ps.includes(i.protocol))
+  ).forEach(i => {
+    const rate = i.total < 5 ? '新节点' :
+      ((i.success / i.total * 100).toFixed(1) + `% (${i.success}/${i.total})`);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i.ip}</td><td>${i.port}</td><td>${i.protocol}</td>
+      <td>${i.country_cn}</td><td>${i.latency} ms</td>
+      <td>${rate}</td><td>${ago(i.last_check)}</td>
+      <td><button onclick="copy('${i.ip}:${i.port}')">复制</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function ago(ts) {
+  const s = Math.floor(Date.now()/1000 - ts);
+  if (s < 60) return s + ' 秒前';
+  if (s < 3600) return Math.floor(s/60) + ' 分钟前';
+  return Math.floor(s/3600) + ' 小时前';
+}
+
+function copy(t) {
+  navigator.clipboard.writeText(t).then(() => alert('已复制 ' + t));
+}
+
+country.onchange = protocol.onchange = render;
+</script>
+
+</body>
+</html>
