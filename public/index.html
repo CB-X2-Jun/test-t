@@ -3,10 +3,28 @@
 <head>
 <meta charset="utf-8" />
 <title>Proxy List</title>
+
 <style>
 body { font-family: sans-serif; }
-table { border-collapse: collapse; width: 100%; }
+table { border-collapse: collapse; width: 100%; margin-top: 10px; }
 th, td { border: 1px solid #ddd; padding: 6px; }
+
+.filter { margin-bottom: 10px; }
+.select-box { display: inline-block; margin-right: 20px; }
+
+.tags { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-left: 6px; }
+.tag {
+  background: #e0e0e0;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 13px;
+}
+.tag span {
+  margin-left: 6px;
+  cursor: pointer;
+  color: #900;
+}
+
 button { cursor: pointer; }
 </style>
 </head>
@@ -14,12 +32,26 @@ button { cursor: pointer; }
 
 <h2>代理列表</h2>
 
-国家 <select id="country" multiple></select>
-协议 <select id="protocol" multiple>
-  <option value="https">HTTPS</option>
-  <option value="socks4">SOCKS4</option>
-  <option value="socks5">SOCKS5</option>
-</select>
+<div class="filter">
+  <div class="select-box">
+    国家：
+    <select id="countrySelect">
+      <option value="">选择国家</option>
+    </select>
+    <div id="countryTags" class="tags"></div>
+  </div>
+
+  <div class="select-box">
+    协议：
+    <select id="protocolSelect">
+      <option value="">选择协议</option>
+      <option value="https">HTTPS</option>
+      <option value="socks4">SOCKS4</option>
+      <option value="socks5">SOCKS5</option>
+    </select>
+    <div id="protocolTags" class="tags"></div>
+  </div>
+</div>
 
 <table>
 <thead>
@@ -34,38 +66,91 @@ button { cursor: pointer; }
 <script>
 let data = [];
 
-fetch('proxies.json').then(r => r.json()).then(d => {
-  data = d;
-  init(); render();
-});
+const selectedCountries = new Set();
+const selectedProtocols = new Set();
+
+fetch('proxies.json')
+  .then(r => r.json())
+  .then(d => {
+    data = d;
+    init();
+    render();
+  });
 
 function init() {
   const cs = [...new Set(data.map(i => i.country_cn))];
+  const countrySelect = document.getElementById('countrySelect');
+
   cs.forEach(c => {
-    let o = document.createElement('option');
-    o.value = c; o.text = c;
-    country.appendChild(o);
+    const o = document.createElement('option');
+    o.value = c;
+    o.textContent = c;
+    countrySelect.appendChild(o);
+  });
+}
+
+document.getElementById('countrySelect').onchange = e => {
+  if (e.target.value) {
+    selectedCountries.add(e.target.value);
+    e.target.value = '';
+    renderTags();
+    render();
+  }
+};
+
+document.getElementById('protocolSelect').onchange = e => {
+  if (e.target.value) {
+    selectedProtocols.add(e.target.value);
+    e.target.value = '';
+    renderTags();
+    render();
+  }
+};
+
+function renderTags() {
+  renderTagGroup('countryTags', selectedCountries);
+  renderTagGroup('protocolTags', selectedProtocols);
+}
+
+function renderTagGroup(id, set) {
+  const box = document.getElementById(id);
+  box.innerHTML = '';
+  [...set].forEach(v => {
+    const t = document.createElement('div');
+    t.className = 'tag';
+    t.innerHTML = `${v}<span>×</span>`;
+    t.querySelector('span').onclick = () => {
+      set.delete(v);
+      renderTags();
+      render();
+    };
+    box.appendChild(t);
   });
 }
 
 function render() {
+  const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
-  const cs = [...country.selectedOptions].map(o => o.value);
-  const ps = [...protocol.selectedOptions].map(o => o.value);
 
   data.filter(i =>
-    (!cs.length || cs.includes(i.country_cn)) &&
-    (!ps.length || ps.includes(i.protocol))
+    (!selectedCountries.size || selectedCountries.has(i.country_cn)) &&
+    (!selectedProtocols.size || selectedProtocols.has(i.protocol))
   ).forEach(i => {
-    const rate = i.total < 5 ? '新节点' :
-      ((i.success / i.total * 100).toFixed(1) + `% (${i.success}/${i.total})`);
+    const rate = i.total < 5
+      ? '新节点'
+      : `${(i.success / i.total * 100).toFixed(1)}% (${i.success}/${i.total})`;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${i.ip}</td><td>${i.port}</td><td>${i.protocol}</td>
-      <td>${i.country_cn}</td><td>${i.latency} ms</td>
-      <td>${rate}</td><td>${ago(i.last_check)}</td>
-      <td><button onclick="copy('${i.ip}:${i.port}')">复制</button></td>`;
+      <td>${i.ip}</td>
+      <td>${i.port}</td>
+      <td>${i.protocol}</td>
+      <td>${i.country_cn}</td>
+      <td>${i.latency} ms</td>
+      <td>${rate}</td>
+      <td>${ago(i.last_check)}</td>
+      <td><button onclick="copy('${i.ip}:${i.port}')">复制</button></td>
+    `;
     tbody.appendChild(tr);
   });
 }
@@ -78,10 +163,10 @@ function ago(ts) {
 }
 
 function copy(t) {
-  navigator.clipboard.writeText(t).then(() => alert('已复制 ' + t));
+  navigator.clipboard.writeText(t).then(() => {
+    alert('已复制 ' + t);
+  });
 }
-
-country.onchange = protocol.onchange = render;
 </script>
 
 </body>
