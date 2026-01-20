@@ -7,14 +7,14 @@ from pathlib import Path
 from country_map import COUNTRY_MAP
 
 BASE = Path(__file__).resolve().parent.parent
+
 PROXY_FILE = BASE / "proxy.txt"
-OUT_FILE = BASE / "public" / "proxies.json"
+PUBLIC_FILE = BASE / "public" / "proxies.json"
+HISTORY_FILE = BASE / "data" / "history.json"
 
-# 超时设置
-FAST_TIMEOUT = 10      # 第一阶段：连通性 + 延迟
-DEEP_TIMEOUT = 10      # 第二阶段：单个 API 请求
+FAST_TIMEOUT = 10
+DEEP_TIMEOUT = 5
 
-# 深度检测用的 IP API（顺序轮询，命中即停）
 TEST_APIS = [
     ("ifconfig.me", 443, "/ip"),
     ("httpbin.org", 443, "/ip"),
@@ -32,10 +32,10 @@ def parse_proxy(line: str):
     return proto, ip, int(port), country
 
 
-# ─────────────────────────────────────
-# 第一阶段：快速检测（仅测是否能连 + 延迟）
-# ─────────────────────────────────────
-async def check_latency(ip: str, port: int):
+# ─────────────────────────────
+# 第一阶段：延迟检测
+# ─────────────────────────────
+async def check_latency(ip, port):
     start = time.time()
     try:
         reader, writer = await asyncio.wait_for(
@@ -49,14 +49,10 @@ async def check_latency(ip: str, port: int):
         return None
 
 
-# ─────────────────────────────────────
+# ─────────────────────────────
 # 第二阶段：深度检测（status-only）
-# ─────────────────────────────────────
-def deep_check_status_only(proto: str, ip: str, port: int) -> bool:
-    """
-    通过代理访问多个 IP API
-    只要任意一个返回 HTTP 200 即判定可用
-    """
+# ─────────────────────────────
+def deep_check(proto, ip, port):
     for host, hport, path in TEST_APIS:
         try:
             s = socks.socksocket()
@@ -65,7 +61,7 @@ def deep_check_status_only(proto: str, ip: str, port: int) -> bool:
                 s.set_proxy(socks.SOCKS4, ip, port)
             elif proto == "socks5":
                 s.set_proxy(socks.SOCKS5, ip, port)
-            else:  # https proxy（CONNECT）
+            else:
                 s.set_proxy(socks.HTTP, ip, port)
 
             s.settimeout(DEEP_TIMEOUT)
@@ -81,14 +77,12 @@ def deep_check_status_only(proto: str, ip: str, port: int) -> bool:
                 f"Connection: close\r\n\r\n"
             )
             ss.sendall(req.encode())
-
             data = ss.recv(256)
             ss.close()
 
             if not data:
                 continue
 
-            # 只解析 status line
             status_line = data.split(b"\r\n", 1)[0]
             if b" 200 " in status_line:
                 return True
@@ -99,19 +93,20 @@ def deep_check_status_only(proto: str, ip: str, port: int) -> bool:
     return False
 
 
-# ─────────────────────────────────────
+# ─────────────────────────────
 # 主流程
-# ─────────────────────────────────────
+# ─────────────────────────────
 async def main():
-    # 读取历史数据（用于成功率统计）
+    # 读取历史
     history = {}
-    if OUT_FILE.exists():
-        with open(OUT_FILE, "r", encoding="utf-8") as f:
-            for item in json.load(f):
-                history[item["id"]] = item
+    if HISTORY_FILE.exists():
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            for i in json.load(f):
+                history[i["id"]] = i
 
     results = []
     loop = asyncio.get_event_loop()
+    now = int(time.time())
 
     for line in PROXY_FILE.read_text(encoding="utf-8").splitlines():
         if not line.strip():
@@ -120,41 +115,49 @@ async def main():
         proto, ip, port, country = parse_proxy(line)
         pid = f"{proto}_{ip}_{port}"
 
-        record = history.get(pid, {
-            "id": pid,
-            "ip": ip,
-            "port": port,
-            "protocol": proto,
-            "country": country,
-            "country_cn": COUNTRY_MAP.get(country, country),
-            "success": 0,
-            "total": 0,
-        })
+        record = history.get(pid)
+        if not record:
+            record = {
+                "id": pid,
+                "ip": ip,
+                "port": port,
+                "protocol": proto,
+                "country": country,
+                "country_cn": COUNTRY_MAP.get(country, country),
+                "success": 0,
+                "total": 0,
+            }
 
-        # 每次运行都算一次采样
+        # 每次检测都计入 total
         record["total"] += 1
 
-        # 阶段 1：快速检测
         latency = await check_latency(ip, port)
         if latency is None:
+            history[pid] = record
             continue
 
-        # 阶段 2：深度检测（放到线程池，避免阻塞）
         ok = await loop.run_in_executor(
-            None, deep_check_status_only, proto, ip, port
+            None, deep_check, proto, ip, port
         )
 
-        if not ok:
-            continue
+        if ok:
+            record["success"] += 1
+            record["latency"] = latency
+            record["last_check"] = now
+            results.append(record)
 
-        # 成功
-        record["success"] += 1
-        record["latency"] = latency
-        record["last_check"] = int(time.time())
-        results.append(record)
+        # 无论成功失败，都写回历史
+        history[pid] = record
 
-    OUT_FILE.parent.mkdir(exist_ok=True)
-    with open(OUT_FILE, "w", encoding="utf-8") as f:
+    HISTORY_FILE.parent.mkdir(exist_ok=True)
+    PUBLIC_FILE.parent.mkdir(exist_ok=True)
+
+    # 写全量历史（永不删）
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(list(history.values()), f, ensure_ascii=False, indent=2)
+
+    # 写当前可用节点（给前端）
+    with open(PUBLIC_FILE, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
 
 
