@@ -13,7 +13,7 @@ PUBLIC_FILE = BASE / "public" / "proxies.json"
 HISTORY_FILE = BASE / "data" / "history.json"
 
 FAST_TIMEOUT = 10
-DEEP_TIMEOUT = 5
+DEEP_TIMEOUT = 10
 
 TEST_APIS = [
     ("ifconfig.me", 443, "/ip"),
