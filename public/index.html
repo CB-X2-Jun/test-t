@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="zh">
 <head>
 <meta charset="utf-8" />
@@ -241,6 +241,312 @@ function ago(ts) {
 
 function copy(t) {
   navigator.clipboard.writeText(t).then(() => alert('已复制 ' + t));
+}
+</script>
+
+</body>
+</html> -->
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<title>Proxy List</title>
+
+<!-- 国旗图标 -->
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css"
+/>
+
+<style>
+:root {
+  --bg: #f4f9fd;
+  --card: #ffffff;
+  --primary: #4fa3d1;
+  --border: #d8e6f0;
+  --text: #334;
+  --muted: #667;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h2 {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+.filter {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.select-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: white;
+}
+
+.tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e8f3fa;
+  color: #245;
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 13px;
+}
+
+.tag .fi {
+  width: 1em;
+  height: 1em;
+  border-radius: 2px;
+}
+
+.tag span.remove {
+  cursor: pointer;
+  color: #900;
+  font-weight: bold;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+th, td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 14px;
+}
+
+th {
+  background: #eef6fb;
+  color: #345;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.country {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.country .fi {
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 2px;
+}
+
+button {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #f0f8fd;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e1f1fa;
+}
+</style>
+</head>
+<body>
+
+<h2>代理列表</h2>
+
+<div class="filter">
+  <div class="select-box">
+    国家：
+    <select id="countrySelect">
+      <option value="">选择国家</option>
+    </select>
+    <div id="countryTags" class="tags"></div>
+  </div>
+
+  <div class="select-box">
+    协议：
+    <select id="protocolSelect">
+      <option value="">选择协议</option>
+      <option value="https">HTTPS</option>
+      <option value="socks4">SOCKS4</option>
+      <option value="socks5">SOCKS5</option>
+    </select>
+    <div id="protocolTags" class="tags"></div>
+  </div>
+</div>
+
+<table>
+<thead>
+<tr>
+  <th>IP</th>
+  <th>端口</th>
+  <th>协议</th>
+  <th>国家</th>
+  <th>延迟</th>
+  <th>成功率</th>
+  <th>上次检测</th>
+  <th>复制</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<script>
+let data = [];
+
+const selectedCountries = new Set();
+const selectedProtocols = new Set();
+
+fetch('proxies.json')
+  .then(r => r.json())
+  .then(d => {
+    data = d;
+    init();
+    render();
+  });
+
+function init() {
+  const cs = [...new Set(data.map(i => i.country_cn))];
+  const countrySelect = document.getElementById('countrySelect');
+
+  cs.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c;
+    o.textContent = c;
+    countrySelect.appendChild(o);
+  });
+}
+
+countrySelect.onchange = e => {
+  if (e.target.value) {
+    selectedCountries.add(e.target.value);
+    e.target.value = '';
+    renderTags();
+    render();
+  }
+};
+
+protocolSelect.onchange = e => {
+  if (e.target.value) {
+    selectedProtocols.add(e.target.value);
+    e.target.value = '';
+    renderTags();
+    render();
+  }
+};
+
+function renderTags() {
+  renderTagGroup('countryTags', selectedCountries, true);
+  renderTagGroup('protocolTags', selectedProtocols, false);
+}
+
+function renderTagGroup(id, set, withFlag) {
+  const box = document.getElementById(id);
+  box.innerHTML = '';
+
+  [...set].forEach(v => {
+    const t = document.createElement('div');
+    t.className = 'tag';
+
+    let flagHTML = '';
+    if (withFlag) {
+      const code = data.find(i => i.country_cn === v)?.country;
+      if (code) {
+        flagHTML = `<span class="fi fi-${code.toLowerCase()}"></span>`;
+      }
+    }
+
+    t.innerHTML = `
+      ${flagHTML}${v}
+      <span class="remove">×</span>
+    `;
+
+    t.querySelector('.remove').onclick = () => {
+      set.delete(v);
+      renderTags();
+      render();
+    };
+
+    box.appendChild(t);
+  });
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  data
+    .filter(i =>
+      (!selectedCountries.size || selectedCountries.has(i.country_cn)) &&
+      (!selectedProtocols.size || selectedProtocols.has(i.protocol))
+    )
+    .forEach(i => {
+      const rate = i.total < 3
+        ? '新节点(检测次数<3)'
+        : `${(i.success / i.total * 100).toFixed(1)}% (${i.success}/${i.total})`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i.ip}</td>
+        <td>${i.port}</td>
+        <td>${i.protocol}</td>
+        <td>
+          <span class="country">
+            <span class="fi fi-${i.country.toLowerCase()}"></span>
+            ${i.country_cn}
+          </span>
+        </td>
+        <td>${i.latency} ms</td>
+        <td>${rate}</td>
+        <td>${ago(i.last_check)}</td>
+        <td><button onclick="copy('${i.ip}:${i.port}')">复制</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+}
+
+function ago(ts) {
+  const s = Math.floor(Date.now()/1000 - ts);
+  if (s < 60) return s + ' 秒前';
+  if (s < 3600) return Math.floor(s/60) + ' 分钟前';
+  return Math.floor(s/3600) + ' 小时前';
+}
+
+function copy(t) {
+  navigator.clipboard.writeText(t).then(() => {
+    alert('已复制 ' + t);
+  });
 }
 </script>
 
