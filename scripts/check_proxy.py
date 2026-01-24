@@ -52,6 +52,36 @@ async def check_latency(ip, port):
     except Exception:
         return None
 
+def socks4_latency(ip, port, timeout=FAST_TIMEOUT):
+    import socket, struct, time
+
+    target_ip = "98.88.224.123"
+    target_port = 80
+
+    t0 = time.time()
+    s = socket.socket()
+    s.settimeout(timeout)
+    s.connect((ip, port))
+
+    # SOCKS4 CONNECT
+    req = struct.pack(
+        "!BBH4sB",
+        0x04,          # VN
+        0x01,          # CD = CONNECT
+        target_port,
+        socket.inet_aton(target_ip),
+        0x00           # USERID null
+    )
+
+    s.sendall(req)
+
+    resp = s.recv(8)
+    s.close()
+
+    if len(resp) != 8 or resp[1] != 0x5A:
+        return None
+
+    return int((time.time() - t0) * 1000)
 
 # ─────────────────────────────
 # 第二阶段：深度检测（status-only）
@@ -140,7 +170,11 @@ async def main():
         # 每次检测都计入 total
         record["total"] += 1
 
-        latency = await check_latency(ip, port)
+        if proto == "socks4":
+            latency = socks4_latency(ip, port)
+        else:
+            latency = await check_latency(ip, port)
+
         if latency is None:
             history[pid] = record
             continue
