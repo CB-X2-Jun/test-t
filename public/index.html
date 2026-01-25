@@ -318,7 +318,7 @@ function rateBar(success, total) {
 
 function latencyBar(ms) {
   const pct = Math.min(100, ms / 5000 * 100);
-  const color = ms <= 500 ? 'green' : ms <= 1000 ? 'yellow' : 'red';
+  const color = ms <= 200 ? 'green' : ms <= 1500 ? 'yellow' : 'red';
   return `
     <div class="bar-wrap">
       <div class="bar ${color}" style="width:${pct}%"></div>
