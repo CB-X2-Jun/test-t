@@ -17,3 +17,7 @@ socks5://xxx.xxx.xxx.xxx:xxx:country
 ```
 
 **请确保支持 ssl（简单来说就是可以访问https网站😄）**
+
+## Stars⭐
+
+[![Star History Chart](https://api.star-history.com/svg?repos=CB-X2-Jun/proxy-lists&type=date&legend=top-left)](https://www.star-history.com/#CB-X2-Jun/proxy-lists&type=date&legend=top-left)
