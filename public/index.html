@@ -6,39 +6,28 @@
 <meta name="author" content="CB-X2-Jun">
 <title>Proxy List</title>
 
-<!-- 国旗图标 -->
-<link
-  rel="stylesheet"
-  href="https://lipis.github.io/flag-icons/css/flag-icons.min.css"
-/>
+<link rel="stylesheet" href="https://lipis.github.io/flag-icons/css/flag-icons.min.css"/>
 
 <style>
-/* ===================== 亮色模式（原样） ===================== */
 :root {
   --blue: #4aa3df;
   --blue-light: #eaf6fd;
   --border: #d8e6f3;
   --text: #333;
   --bg: #f5f9fc;
-
   --card: #ffffff;
   --hover: #f8fbfe;
 }
-
-/* ===================== 暗色模式变量覆盖 ===================== */
 body.dark {
   --blue: #5bb3ff;
   --blue-light: #1e2a36;
   --border: #2b3a48;
   --text: #e6edf3;
   --bg: #0f1720;
-
   --card: #141e28;
   --hover: #1b2733;
 }
-
 * { box-sizing: border-box; }
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--bg);
@@ -46,13 +35,8 @@ body {
   margin: 0;
   padding: 24px;
 }
+h2 { margin: 0 0 16px; color: #2c6fa3; }
 
-h2 {
-  margin: 0 0 16px;
-  color: #2c6fa3;
-}
-
-/* ===================== 顶部开关 ===================== */
 .theme-toggle {
   position: fixed;
   top: 16px;
@@ -61,9 +45,7 @@ h2 {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  user-select: none;
 }
-
 .theme-toggle input {
   width: 42px;
   height: 22px;
@@ -71,9 +53,7 @@ h2 {
   background: #ccc;
   border-radius: 999px;
   position: relative;
-  cursor: pointer;
 }
-
 .theme-toggle input::before {
   content: '';
   position: absolute;
@@ -85,16 +65,9 @@ h2 {
   border-radius: 50%;
   transition: .2s;
 }
+.theme-toggle input:checked { background: var(--blue); }
+.theme-toggle input:checked::before { transform: translateX(20px); }
 
-.theme-toggle input:checked {
-  background: var(--blue);
-}
-
-.theme-toggle input:checked::before {
-  transform: translateX(20px);
-}
-
-/* ===================== 原样式 ===================== */
 .filter {
   background: var(--card);
   padding: 12px 16px;
@@ -105,13 +78,7 @@ h2 {
   gap: 32px;
   flex-wrap: wrap;
 }
-
-.select-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
+.select-box { display: flex; align-items: center; gap: 8px; }
 select {
   padding: 6px 8px;
   border-radius: 6px;
@@ -119,16 +86,9 @@ select {
   background: var(--card);
   color: var(--text);
 }
-
-.tags {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
+.tags { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .tag {
   background: var(--blue-light);
-  color: var(--text);
   border-radius: 14px;
   padding: 4px 10px;
   font-size: 13px;
@@ -144,28 +104,14 @@ table {
   border-radius: 10px;
   overflow: hidden;
 }
-
 th, td {
   padding: 10px 8px;
-  text-align: left;
   border-bottom: 1px solid var(--border);
 }
+th { background: var(--blue-light); color: #2c6fa3; }
+tr:hover td { background: var(--hover); }
 
-th {
-  background: var(--blue-light);
-  color: #2c6fa3;
-}
-
-tr:hover td {
-  background: var(--hover);
-}
-
-.country {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
+.country { display: inline-flex; align-items: center; gap: 6px; }
 button {
   background: var(--blue);
   color: white;
@@ -175,21 +121,14 @@ button {
   cursor: pointer;
 }
 
-/* ===================== ✅ 新增：进度条样式 ===================== */
 .bar-wrap {
   margin-top: 4px;
   width: 100%;
   height: 6px;
   background: var(--border);
   border-radius: 999px;
-  overflow: hidden;
 }
-
-.bar {
-  height: 100%;
-  width: 0;
-}
-
+.bar { height: 100%; }
 .bar.green { background: #3cb371; }
 .bar.yellow { background: #f0c24b; }
 .bar.red { background: #e5533d; }
@@ -198,20 +137,14 @@ button {
 
 <body>
 
-<!-- 亮暗模式开关 -->
 <label class="theme-toggle">
   ☀️ <input type="checkbox" id="themeToggle"> 🌙
 </label>
 
 <h2>🌐 代理列表</h2>
 
-<!-- 统计信息 -->
-<div id="stats" style="
-  margin: 8px 0 16px;
-  font-size: 14px;
-  color: var(--text);
-">
-  数据库中代理数：—｜
+<!-- ✅ 已删除「数据库中代理数」 -->
+<div id="stats" style="margin:8px 0 16px;font-size:14px;">
   目前可用：—｜
   HTTPS：—｜
   SOCKS4：—｜
@@ -222,12 +155,9 @@ button {
 <div class="filter">
   <div class="select-box">
     国家：
-    <select id="countrySelect">
-      <option value="">选择国家</option>
-    </select>
+    <select id="countrySelect"><option value="">选择国家</option></select>
     <div id="countryTags" class="tags"></div>
   </div>
-
   <div class="select-box">
     协议：
     <select id="protocolSelect">
@@ -238,21 +168,17 @@ button {
     </select>
     <div id="protocolTags" class="tags"></div>
   </div>
-  
   <div class="select-box">
     端口：
-    <select id="portSelect">
-      <option value="">选择端口</option>
-    </select>
+    <select id="portSelect"><option value="">选择端口</option></select>
     <div id="portTags" class="tags"></div>
   </div>
-  
   <div class="select-box">
     排序方式：
     <select id="sortSelect">
       <option value="default">默认</option>
       <option value="latency">延迟</option>
-      <option value="successRate">成功率</option>
+      <option value="success">成功率</option>
     </select>
   </div>
 </div>
@@ -268,7 +194,6 @@ button {
 </table>
 
 <script>
-/* 亮暗模式 */
 const toggle = document.getElementById('themeToggle');
 if (localStorage.getItem('theme') === 'dark') {
   document.body.classList.add('dark');
@@ -279,185 +204,87 @@ toggle.onchange = () => {
   localStorage.setItem('theme', toggle.checked ? 'dark' : 'light');
 };
 
-/* 原 JS */
 let data = [];
 const selectedCountries = new Set();
 const selectedProtocols = new Set();
 const selectedPorts = new Set();
 let sortMethod = 'default';
 
-fetch('proxies.json')
-  .then(r => r.json())
-  .then(d => {
-    data = d.map((i, idx) => ({
-      ...i,
-      __index: idx   // 保证“默认顺序”
-    }));
-    init();
-    render();
-  });
+fetch('proxies.json').then(r => r.json()).then(d => {
+  data = d.map((i, idx) => ({ ...i, __index: idx }));
+  init(); render();
+});
 
 function init() {
-  const cs = [...new Set(data.map(i => i.country_cn))];
-  cs.forEach(c => countrySelect.add(new Option(c, c)));
-
-  const ps = [...new Set(data.map(i => i.port))].sort((a, b) => a - b);
-  ps.forEach(p => portSelect.add(new Option(p, p)));
+  [...new Set(data.map(i => i.country_cn))]
+    .forEach(c => countrySelect.add(new Option(c, c)));
+  [...new Set(data.map(i => i.port))].sort((a,b)=>a-b)
+    .forEach(p => portSelect.add(new Option(p, p)));
 }
 
-countrySelect.onchange = e => {
-  if (e.target.value) {
-    selectedCountries.add(e.target.value);
-    e.target.value = '';
-    renderTags(); render();
-  }
-};
-
-protocolSelect.onchange = e => {
-  if (e.target.value) {
-    selectedProtocols.add(e.target.value);
-    e.target.value = '';
-    renderTags(); render();
-  }
-};
-
-portSelect.onchange = e => {
-  if (e.target.value) {
-    selectedPorts.add(e.target.value);
-    e.target.value = '';
-    renderTags(); render();
-  }
-};
-
-sortSelect.onchange = e => {
-  sortMethod = e.target.value;
-  render();
-};
+countrySelect.onchange = e => e.target.value && (selectedCountries.add(e.target.value), e.target.value='', renderTags(), render());
+protocolSelect.onchange = e => e.target.value && (selectedProtocols.add(e.target.value), e.target.value='', renderTags(), render());
+portSelect.onchange = e => e.target.value && (selectedPorts.add(e.target.value), e.target.value='', renderTags(), render());
+sortSelect.onchange = e => (sortMethod = e.target.value, render());
 
 function renderTags() {
   renderTagGroup('countryTags', selectedCountries, true);
-  renderTagGroup('protocolTags', selectedProtocols, false);
-  renderTagGroup('portTags', selectedPorts, false);
+  renderTagGroup('protocolTags', selectedProtocols);
+  renderTagGroup('portTags', selectedPorts);
 }
 
-function renderTagGroup(id, set, withFlag) {
+function renderTagGroup(id, set, flag) {
   const box = document.getElementById(id);
   box.innerHTML = '';
   [...set].forEach(v => {
     const t = document.createElement('div');
+    const code = flag ? data.find(i=>i.country_cn===v)?.country : '';
     t.className = 'tag';
-    const code = withFlag ? data.find(i => i.country_cn === v)?.country : '';
-    t.innerHTML = `${code ? `<span class="fi fi-${code.toLowerCase()}"></span>` : ''}${v}<span>×</span>`;
-    t.lastChild.onclick = () => {
-      set.delete(v);
-      renderTags(); render();
-    };
+    t.innerHTML = `${code?`<span class="fi fi-${code.toLowerCase()}"></span>`:''}${v}<span>×</span>`;
+    t.lastChild.onclick = () => (set.delete(v), renderTags(), render());
     box.appendChild(t);
   });
 }
 
-/* ===================== 进度条逻辑（原样） ===================== */
-function rateBar(success, total) {
-  if (!total) return '';
-  const pct = Math.min(100, success / total * 100);
-  const color = pct <= 40 ? 'red' : pct <= 70 ? 'yellow' : 'green';
-  return `
-    <div class="bar-wrap">
-      <div class="bar ${color}" style="width:${pct}%"></div>
-    </div>`;
-}
-
-function latencyBar(ms) {
-  const pct = Math.min(100, ms / 5000 * 100);
-  const color = ms <= 500 ? 'green' : ms <= 1500 ? 'yellow' : 'red';
-  return `
-    <div class="bar-wrap">
-      <div class="bar ${color}" style="width:${pct}%"></div>
-    </div>`;
-}
-
-/* ===================== 更新统计数据 ===================== */
 function updateStats(list) {
-  const total = data.length;
-
-  const available = list.filter(i => i.latency > 0).length;
-
-  const https = list.filter(i => i.protocol === 'https').length;
-  const socks4 = list.filter(i => i.protocol === 'socks4').length;
-  const socks5 = list.filter(i => i.protocol === 'socks5').length;
-
-  const countries = new Set(
-    list.filter(i => i.latency > 0).map(i => i.country)
-  ).size;
-
   document.getElementById('stats').textContent =
-    `数据库中代理数：${total} ｜ ` +
-    `目前可用：${available} ｜ ` +
-    `HTTPS：${https} ｜ ` +
-    `SOCKS4：${socks4} ｜ ` +
-    `SOCKS5：${socks5} ｜ ` +
-    `可用国家数：${countries}`;
+    `目前可用：${list.length} ｜ ` +
+    `HTTPS：${list.filter(i=>i.protocol==='https').length} ｜ ` +
+    `SOCKS4：${list.filter(i=>i.protocol==='socks4').length} ｜ ` +
+    `SOCKS5：${list.filter(i=>i.protocol==='socks5').length} ｜ ` +
+    `可用国家数：${new Set(list.map(i=>i.country)).size}`;
 }
 
-/* ===================== 渲染 + 排序（只在这里加） ===================== */
 function render() {
-  tbody.innerHTML = '';
-
   let list = data.filter(i =>
     (!selectedCountries.size || selectedCountries.has(i.country_cn)) &&
     (!selectedProtocols.size || selectedProtocols.has(i.protocol)) &&
     (!selectedPorts.size || selectedPorts.has(String(i.port)))
   );
 
-  if (sortMethod === 'latency') {
-    list = list.slice().sort((a, b) =>
-      a.latency - b.latency || a.__index - b.__index
-    );
-  } else if (sortMethod === 'success') {
-    list = list.slice().sort((a, b) => {
-      const ra = a.total ? a.success / a.total : 0;
-      const rb = b.total ? b.success / b.total : 0;
-      return rb - ra || a.__index - b.__index;
-    });
-  }
-  // default：什么都不做，保持 __index 顺序
+  if (sortMethod === 'latency')
+    list = list.slice().sort((a,b)=>a.latency-b.latency||a.__index-b.__index);
+  else if (sortMethod === 'success')
+    list = list.slice().sort((a,b)=>(b.success/b.total)-(a.success/a.total)||a.__index-b.__index);
 
-  updateStats(list);   // ← 就这一行
+  updateStats(list);
 
-  list.forEach(i => {
-    const rateText = i.total < 3
-      ? '新节点 (测试次数小于3)'
-      : `${(i.success / i.total * 100).toFixed(1)}% (${i.success}/${i.total})`;
-
-    tbody.insertAdjacentHTML('beforeend', `
+  tbody.innerHTML='';
+  list.forEach(i=>{
+    tbody.insertAdjacentHTML('beforeend',`
       <tr>
-        <td>${i.ip}</td>
-        <td>${i.port}</td>
-        <td>${i.protocol}</td>
-        <td>
-          <span class="country">
-            <span class="fi fi-${i.country.toLowerCase()}"></span>${i.country_cn}
-          </span>
-        </td>
-        <td>${i.latency} ms${latencyBar(i.latency)}</td>
-        <td>${rateText}${rateBar(i.success, i.total)}</td>
+        <td>${i.ip}</td><td>${i.port}</td><td>${i.protocol}</td>
+        <td><span class="country"><span class="fi fi-${i.country.toLowerCase()}"></span>${i.country_cn}</span></td>
+        <td>${i.latency} ms</td>
+        <td>${(i.success/i.total*100).toFixed(1)}%</td>
         <td>${ago(i.last_check)}</td>
         <td><button onclick="copy('${i.ip}:${i.port}')">复制</button></td>
-      </tr>
-    `);
+      </tr>`);
   });
 }
 
-function ago(ts) {
-  const s = Math.floor(Date.now() / 1000 - ts);
-  if (s < 60) return s + ' 秒前';
-  if (s < 3600) return Math.floor(s / 60) + ' 分钟前';
-  return Math.floor(s / 3600) + ' 小时前';
-}
-
-function copy(t) {
-  navigator.clipboard.writeText(t).then(() => alert('已复制 ' + t));
-}
+function ago(ts){const s=Math.floor(Date.now()/1000-ts);return s<60?`${s} 秒前`:s<3600?`${s/60|0} 分钟前`:`${s/3600|0} 小时前`;}
+function copy(t){navigator.clipboard.writeText(t);}
 </script>
 
 </body>
