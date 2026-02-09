@@ -13,9 +13,7 @@
 />
 
 <style>
-/* =====================
-   亮色模式（原样）
-===================== */
+/* ===================== 亮色模式（原样） ===================== */
 :root {
   --blue: #4aa3df;
   --blue-light: #eaf6fd;
@@ -27,9 +25,7 @@
   --hover: #f8fbfe;
 }
 
-/* =====================
-   暗色模式变量覆盖
-===================== */
+/* ===================== 暗色模式变量覆盖 ===================== */
 body.dark {
   --blue: #5bb3ff;
   --blue-light: #1e2a36;
@@ -56,9 +52,7 @@ h2 {
   color: #2c6fa3;
 }
 
-/* =====================
-   顶部开关
-===================== */
+/* ===================== 顶部开关 ===================== */
 .theme-toggle {
   position: fixed;
   top: 16px;
@@ -100,9 +94,7 @@ h2 {
   transform: translateX(20px);
 }
 
-/* =====================
-   原样式
-===================== */
+/* ===================== 原样式 ===================== */
 .filter {
   background: var(--card);
   padding: 12px 16px;
@@ -183,9 +175,7 @@ button {
   cursor: pointer;
 }
 
-/* =====================
-   ✅ 新增：进度条样式
-===================== */
+/* ===================== ✅ 新增：进度条样式 ===================== */
 .bar-wrap {
   margin-top: 4px;
   width: 100%;
@@ -208,11 +198,26 @@ button {
 
 <body>
 
+<!-- 亮暗模式开关 -->
 <label class="theme-toggle">
   ☀️ <input type="checkbox" id="themeToggle"> 🌙
 </label>
 
 <h2>🌐 代理列表</h2>
+
+<!-- 统计信息 -->
+<div id="stats" style="
+  margin: 8px 0 16px;
+  font-size: 14px;
+  color: var(--text);
+">
+  数据库中代理数：—｜
+  目前可用：—｜
+  HTTPS：—｜
+  SOCKS4：—｜
+  SOCKS5：—｜
+  可用国家数：—
+</div>
 
 <div class="filter">
   <div class="select-box">
@@ -351,9 +356,7 @@ function renderTagGroup(id, set, withFlag) {
   });
 }
 
-/* =====================
-   进度条逻辑（原样）
-===================== */
+/* ===================== 进度条逻辑（原样） ===================== */
 function rateBar(success, total) {
   if (!total) return '';
   const pct = Math.min(100, success / total * 100);
@@ -373,12 +376,30 @@ function latencyBar(ms) {
     </div>`;
 }
 
-/* =====================
-   ✅ 渲染 + 排序（只在这里加）
-===================== */
-/* =====================
-   ✅ 渲染 + 排序（修复成功率排序问题）
-===================== */
+/* ===================== 更新统计数据 ===================== */
+function updateStats(list) {
+  const total = data.length;
+
+  const available = list.filter(i => i.latency > 0).length;
+
+  const https = list.filter(i => i.protocol === 'https').length;
+  const socks4 = list.filter(i => i.protocol === 'socks4').length;
+  const socks5 = list.filter(i => i.protocol === 'socks5').length;
+
+  const countries = new Set(
+    list.filter(i => i.latency > 0).map(i => i.country)
+  ).size;
+
+  document.getElementById('stats').textContent =
+    `数据库中代理数：${total} ｜ ` +
+    `目前可用：${available} ｜ ` +
+    `HTTPS：${https} ｜ ` +
+    `SOCKS4：${socks4} ｜ ` +
+    `SOCKS5：${socks5} ｜ ` +
+    `可用国家数：${countries}`;
+}
+
+/* ===================== 渲染 + 排序（只在这里加） ===================== */
 function render() {
   tbody.innerHTML = '';
 
@@ -388,23 +409,21 @@ function render() {
     (!selectedPorts.size || selectedPorts.has(String(i.port)))
   );
 
-  // 排序方式：根据选择的排序字段进行排序
   if (sortMethod === 'latency') {
     list = list.slice().sort((a, b) =>
       a.latency - b.latency || a.__index - b.__index
     );
-  } else if (sortMethod === 'successRate') {
+  } else if (sortMethod === 'success') {
     list = list.slice().sort((a, b) => {
-      const ra = a.total ? a.success / a.total : 0;  // 计算成功率
-      const rb = b.total ? b.success / b.total : 0;  // 计算成功率
-      return rb - ra || a.__index - b.__index; // 按成功率降序排列，若相同按原顺序排序
+      const ra = a.total ? a.success / a.total : 0;
+      const rb = b.total ? b.success / b.total : 0;
+      return rb - ra || a.__index - b.__index;
     });
-  } else {
-    // 默认排序：保持原顺序
-    list = list.slice().sort((a, b) => a.__index - b.__index);
   }
+  // default：什么都不做，保持 __index 顺序
 
-  // 渲染表格
+  updateStats(list);   // ← 就这一行
+
   list.forEach(i => {
     const rateText = i.total < 3
       ? '新节点 (测试次数小于3)'
@@ -440,7 +459,6 @@ function copy(t) {
   navigator.clipboard.writeText(t).then(() => alert('已复制 ' + t));
 }
 </script>
-
 
 </body>
 </html>
