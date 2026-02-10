@@ -3,11 +3,13 @@ name: Deploy static content to Pages
 
 on:
   workflow_run:
-    workflows: ["Proxy Check"]
+    workflows: [Proxy Check]
     types:
       - completed
   push:
     branches: ["main"]
+  schedule:
+    - cron: 0/6 * * * *
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
