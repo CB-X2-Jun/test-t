@@ -60,7 +60,7 @@ async def check_latency(ip, port):
 def socks4_latency(ip, port, timeout=FAST_TIMEOUT):
     import socket, struct, time
 
-    target_ip = "52.20.30.6"
+    target_ip = "3.210.41.225"
     target_port = 80
 
     t0 = time.time()
