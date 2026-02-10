@@ -220,7 +220,7 @@
     "protocol": "socks5",
     "country": "DE",
     "country_cn": "德国",
-    "success": 600,
+    "success": 601,
     "total": 601,
     "latency": 135,
     "last_check": 1770685561
