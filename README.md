@@ -10,7 +10,7 @@
 
 HTTPS & SOCKS5 的代理，使用 `https://ifconfig.me/ip` `https://httpbin.org/ip` `https://api.ipify.org/?format=json` `https://api.i.pn/json`。
 
-SOCKS4 代理，使用 `http://52.20.30.6/ip` `http://54.147.217.198/ip`
+SOCKS4 代理，使用 `3.95.121.17/ip` `3.210.41.225/ip` `44.197.91.61/ip` `52.204.75.48/ip` `54.236.169.179/ip` `98.91.115.81/ip`。
 
 ## 贡献新代理✨
 
