@@ -5,13 +5,13 @@ concurrency:
   cancel-in-progress: true
 
 on:
-#   schedule:
-#     - cron: "*/59 * * * *"
+  schedule:
+    - cron: "2 */2 * * *"
   workflow_dispatch:
-  workflow_run:
-    workflows: [Deploy static content to Pages]
-    types:
-      - completed
+  # workflow_run:
+  #   workflows: [Deploy static content to Pages]
+  #   types:
+  #     - completed
 
 permissions:
   contents: write
