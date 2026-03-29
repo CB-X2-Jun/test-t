@@ -49,6 +49,7 @@ jobs:
       - name: Install deps
         run: |
           pip install pysocks
+          pip install httpx>=0.23.0
 
       - name: Run checker
         run: python scripts/check_proxy.py
