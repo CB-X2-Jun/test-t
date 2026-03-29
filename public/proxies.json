@@ -6,10 +6,10 @@
     "protocol": "http",
     "country": "CN",
     "country_cn": "中国",
-    "success": 1025,
-    "total": 1140,
-    "latency": 224,
-    "last_check": 1774815664
+    "success": 1026,
+    "total": 1141,
+    "latency": 265,
+    "last_check": 1774822838
   },
   {
     "id": "socks5_134.199.159.23_1080",
@@ -18,10 +18,10 @@
     "protocol": "socks5",
     "country": "AU",
     "country_cn": "澳大利亚",
-    "success": 941,
-    "total": 1101,
-    "latency": 198,
-    "last_check": 1774815664
+    "success": 942,
+    "total": 1102,
+    "latency": 259,
+    "last_check": 1774822838
   },
   {
     "id": "socks4_142.54.231.38_4145",
@@ -30,10 +30,10 @@
     "protocol": "socks4",
     "country": "US",
     "country_cn": "美国",
-    "success": 89,
-    "total": 106,
-    "latency": 184,
-    "last_check": 1774815664
+    "success": 90,
+    "total": 107,
+    "latency": 211,
+    "last_check": 1774822838
   },
   {
     "id": "https_160.242.47.197_444",
@@ -42,9 +42,9 @@
     "protocol": "https",
     "country": "NA",
     "country_cn": "纳米比亚",
-    "success": 7,
-    "total": 10,
-    "latency": 292,
-    "last_check": 1774815664
+    "success": 8,
+    "total": 11,
+    "latency": 226,
+    "last_check": 1774822838
   }
 ]
