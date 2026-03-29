@@ -20,6 +20,7 @@ TEST_APIS = [
     ("api.ipify.org", 443, "/?format=json", True),
     ("api.i.pn", 443, "/json", True),
     ("ifconfig.me", 443, "/ip", True),
+    ("ipin.io", 443, "/", True),
 ]
 
 TEST_APIS_SOCKS4 = [
@@ -35,8 +36,6 @@ def parse_proxy(line: str):
     proto, rest = line.split("//", 1)
     ip, port, country = rest.strip().split(":")
     proto = proto.replace(":", "")
-    if proto == "http":
-        proto = "https"
     return proto, ip, int(port), country
 
 
@@ -104,13 +103,61 @@ def deep_check(proto, ip, port):
         try:
             s = socks.socksocket()
 
+            # ───────── proxy 类型设置 ─────────
             if proto == "socks4":
                 s.set_proxy(socks.SOCKS4, ip, port)
+
             elif proto == "socks5":
                 s.set_proxy(socks.SOCKS5, ip, port)
-            else:
+
+            elif proto == "http":
                 s.set_proxy(socks.HTTP, ip, port)
 
+            elif proto == "https":
+                # HTTPS proxy：先 TCP 连 proxy，再手动 TLS 包裹
+                s.settimeout(DEEP_TIMEOUT)
+                s.connect((ip, port))
+
+                ctx = ssl._create_unverified_context()
+                s = ctx.wrap_socket(s, server_hostname=ip)
+
+                # 后面手动 CONNECT
+                connect_req = (
+                    f"CONNECT {host}:{hport} HTTP/1.1\r\n"
+                    f"Host: {host}:{hport}\r\n"
+                    f"User-Agent: proxy-check\r\n\r\n"
+                )
+                s.sendall(connect_req.encode())
+
+                resp = s.recv(4096)
+                if b" 200 " not in resp.split(b"\r\n", 1)[0]:
+                    continue
+
+                # CONNECT 成功后，继续 TLS 到目标
+                if use_ssl:
+                    ctx2 = ssl.create_default_context()
+                    s = ctx2.wrap_socket(s, server_hostname=host)
+
+                # 发送 HTTP 请求
+                req = (
+                    f"GET {path} HTTP/1.1\r\n"
+                    f"Host: {host}\r\n"
+                    f"User-Agent: proxy-check\r\n"
+                    f"Connection: close\r\n\r\n"
+                )
+                s.sendall(req.encode())
+                data = s.recv(256)
+                s.close()
+
+                if data and b" 200 " in data.split(b"\r\n", 1)[0]:
+                    return True
+
+                continue  # 下一个 API
+
+            else:
+                continue
+
+            # ───────── HTTP / SOCKS 通用路径 ─────────
             s.settimeout(DEEP_TIMEOUT)
             s.connect((host, hport))
 
@@ -130,18 +177,13 @@ def deep_check(proto, ip, port):
             data = ss.recv(256)
             ss.close()
 
-            if not data:
-                continue
-
-            status_line = data.split(b"\r\n", 1)[0]
-            if b" 200 " in status_line:
+            if data and b" 200 " in data.split(b"\r\n", 1)[0]:
                 return True
 
         except Exception:
             continue
 
     return False
-
 
 # ─────────────────────────────
 # 主流程
