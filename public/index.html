@@ -193,7 +193,8 @@ button {
 <!-- ★ 修改点 1：去掉“数据库中代理数” -->
 <div id="stats" style="margin:8px 0 16px;font-size:14px;">
   目前可用：—｜
-  HTTPS：—｜
+  HTTP (SSL)：—｜
+  HTTPS (SSL)：—｜
   SOCKS4：—｜
   SOCKS5：—｜
   可用国家数：—
@@ -210,7 +211,8 @@ button {
     协议：
     <select id="protocolSelect">
       <option value="">选择协议</option>
-      <option value="https">HTTPS</option>
+      <option value="http">HTTP (SSL)</option>
+      <option value="https">HTTPS (SSL)</option>
       <option value="socks4">SOCKS4</option>
       <option value="socks5">SOCKS5</option>
     </select>
@@ -311,13 +313,14 @@ function latencyBar(ms){const p=Math.min(100,ms/5000*100);return `<div class="ba
 /* ★ 修改点 2：统计里不再出现“数据库中代理数” */
 function updateStats(list) {
   const available = list.filter(i=>i.latency>0).length;
-  const https = list.filter(i=>i.protocol==='https').length;
+  const sslhttp = list.filter(i=>i.protocol==='http').length;
+  const sslhttps = list.filter(i=>i.protocol==='https').length;
   const socks4 = list.filter(i=>i.protocol==='socks4').length;
   const socks5 = list.filter(i=>i.protocol==='socks5').length;
   const countries = new Set(list.filter(i=>i.latency>0).map(i=>i.country)).size;
 
   stats.textContent =
-    `目前可用：${available} ｜ HTTPS：${https} ｜ SOCKS4：${socks4} ｜ SOCKS5：${socks5} ｜ 可用国家数：${countries}`;
+    `目前可用：${available} ｜ HTTP (SSL)：${sslhttp} | HTTPS (SSL)：${sslhttps} ｜ SOCKS4：${socks4} ｜ SOCKS5：${socks5} ｜ 可用国家数：${countries}`;
 }
 
 function render() {
