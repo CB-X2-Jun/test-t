@@ -78,10 +78,10 @@
     "protocol": "http",
     "country": "CN",
     "country_cn": "中国",
-    "success": 1015,
-    "total": 1130,
-    "latency": 227,
-    "last_check": 1774768056
+    "success": 1016,
+    "total": 1131,
+    "latency": 214,
+    "last_check": 1774775411
   },
   {
     "id": "socks5_198.177.252.24_4145",
@@ -648,10 +648,10 @@
     "protocol": "socks5",
     "country": "AU",
     "country_cn": "澳大利亚",
-    "success": 932,
-    "total": 1091,
-    "latency": 205,
-    "last_check": 1774768056
+    "success": 933,
+    "total": 1092,
+    "latency": 198,
+    "last_check": 1774775411
   },
   {
     "id": "socks5_121.169.46.116_1090",
@@ -6810,10 +6810,10 @@
     "protocol": "socks4",
     "country": "US",
     "country_cn": "美国",
-    "success": 80,
-    "total": 96,
-    "latency": 113,
-    "last_check": 1774768056
+    "success": 81,
+    "total": 97,
+    "latency": 156,
+    "last_check": 1774775411
   },
   {
     "id": "socks4_186.190.228.83_4153",
@@ -6944,5 +6944,15 @@
     "country_cn": "巴林",
     "success": 0,
     "total": 12
+  },
+  {
+    "id": "https_160.242.47.197_444",
+    "ip": "160.242.47.197",
+    "port": 444,
+    "protocol": "https",
+    "country": "NA",
+    "country_cn": "纳米比亚",
+    "success": 0,
+    "total": 1
   }
 ]
