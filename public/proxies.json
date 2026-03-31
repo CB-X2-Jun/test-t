@@ -1,15 +1,15 @@
 [
   {
-    "id": "socks5_134.199.159.23_1080",
-    "ip": "134.199.159.23",
-    "port": 1080,
-    "protocol": "socks5",
-    "country": "AU",
-    "country_cn": "澳大利亚",
-    "success": 957,
-    "total": 1119,
-    "latency": 238,
-    "last_check": 1774961648
+    "id": "http_120.92.212.16_7890",
+    "ip": "120.92.212.16",
+    "port": 7890,
+    "protocol": "http",
+    "country": "CN",
+    "country_cn": "中国",
+    "success": 1043,
+    "total": 1159,
+    "latency": 228,
+    "last_check": 1774968905
   },
   {
     "id": "https_160.242.47.197_444",
@@ -18,9 +18,9 @@
     "protocol": "https",
     "country": "NA",
     "country_cn": "纳米比亚",
-    "success": 25,
-    "total": 28,
-    "latency": 241,
-    "last_check": 1774961648
+    "success": 26,
+    "total": 29,
+    "latency": 278,
+    "last_check": 1774968905
   }
 ]
