@@ -6,10 +6,10 @@
     "protocol": "http",
     "country": "CN",
     "country_cn": "中国",
-    "success": 1043,
-    "total": 1159,
-    "latency": 228,
-    "last_check": 1774968905
+    "success": 1044,
+    "total": 1160,
+    "latency": 226,
+    "last_check": 1774975744
   },
   {
     "id": "https_160.242.47.197_444",
@@ -18,9 +18,9 @@
     "protocol": "https",
     "country": "NA",
     "country_cn": "纳米比亚",
-    "success": 26,
-    "total": 29,
-    "latency": 278,
-    "last_check": 1774968905
+    "success": 27,
+    "total": 30,
+    "latency": 267,
+    "last_check": 1774975744
   }
 ]
