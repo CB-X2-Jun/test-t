@@ -6,10 +6,10 @@
     "protocol": "socks5",
     "country": "AU",
     "country_cn": "澳大利亚",
-    "success": 964,
-    "total": 1128,
-    "latency": 244,
-    "last_check": 1775033669
+    "success": 965,
+    "total": 1129,
+    "latency": 207,
+    "last_check": 1775040358
   },
   {
     "id": "https_160.242.47.197_444",
@@ -18,9 +18,9 @@
     "protocol": "https",
     "country": "NA",
     "country_cn": "纳米比亚",
-    "success": 34,
-    "total": 37,
-    "latency": 249,
-    "last_check": 1775033669
+    "success": 35,
+    "total": 38,
+    "latency": 278,
+    "last_check": 1775040358
   }
 ]
