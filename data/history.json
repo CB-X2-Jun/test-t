@@ -4934,10 +4934,10 @@
     "protocol": "socks4",
     "country": "US",
     "country_cn": "美国",
-    "success": 467,
-    "total": 573,
-    "latency": 138,
-    "last_check": 1775946100
+    "success": 468,
+    "total": 574,
+    "latency": 157,
+    "last_check": 1775957392
   },
   {
     "id": "socks4_119.40.100.121_8069",
