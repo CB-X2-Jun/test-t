@@ -6,9 +6,9 @@
     "protocol": "socks4",
     "country": "US",
     "country_cn": "美国",
-    "success": 836,
-    "total": 942,
-    "latency": 53,
-    "last_check": 1779057796
+    "success": 837,
+    "total": 943,
+    "latency": 179,
+    "last_check": 1779071238
   }
 ]
