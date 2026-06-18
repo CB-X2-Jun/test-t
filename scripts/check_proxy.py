@@ -18,26 +18,18 @@ FAST_TIMEOUT = 10
 DEEP_TIMEOUT = 10
 
 TEST_APIS = [
-    ("httpbin.org", 443, "/ip", True),
-    ("api.ipify.org", 443, "/?format=json", True),
-    ("api.i.pn", 443, "/json", True),
-    ("ifconfig.me", 443, "/ip", True),
-    ("ipin.io", 443, "/", True),
-]
-
-TEST_APIS_SOCKS4 = [
-    ("34.107.221.82", 80, "/", False),  # HTTP + IPv4
-    ("34.223.124.45", 80, "/", False),
-    ("91.189.91.39", 80, "/", False),
-    ("128.31.0.62", 80, "/", False),
-    ("204.79.197.200", 80, "/", False),
+    ("httpbin.org", 80, "/ip", False),
+    ("api.ipify.org", 80, "/?format=json", False),
+    ("api.i.pn", 80, "/json", False),
+    ("ifconfig.me", 80, "/ip", False),
+    ("ipin.io", 80, "/", False),
 ]
 
 def parse_proxy(line: str):
     proto, rest = line.split("//", 1)
-    ip, port, country = rest.strip().split(":")
+    ip, port, country, anon = rest.strip().split(":")
     proto = proto.replace(":", "")
-    return proto, ip, int(port), country
+    return proto, ip, int(port), country, anon
 
 # ─────────────────────────────
 # 第一阶段：延迟检测
@@ -55,61 +47,18 @@ async def check_latency(ip, port):
     except Exception:
         return None
 
-def socks4_latency(ip, port, timeout=FAST_TIMEOUT):
-    import socket, struct, time
-
-    target_ip = "34.107.221.82"
-    target_port = 80
-
-    t0 = time.time()
-    s = socket.socket()
-    s.settimeout(timeout)
-
-    try:
-        s.connect((ip, port))
-
-        # SOCKS4 CONNECT
-        req = struct.pack(
-            "!BBH4sB",
-            0x04,          # VN
-            0x01,          # CD = CONNECT
-            target_port,
-            socket.inet_aton(target_ip),
-            0x00           # USERID null
-        )
-
-        s.sendall(req)
-        resp = s.recv(8)
-
-        if len(resp) != 8 or resp[1] != 0x5A:
-            return None
-
-        return int((time.time() - t0) * 1000)
-
-    except Exception:
-        return None
-    finally:
-        try:
-            s.close()
-        except Exception:
-            pass
-
 # ─────────────────────────────
 # 第二阶段：深度检测（status-only）
 # ─────────────────────────────
 def deep_check(proto, ip, port):
-    if proto in ("socks4", "socks5", "http"):
-        apis = TEST_APIS_SOCKS4 if proto == "socks4" else TEST_APIS
+    if proto in ("http"):
+        apis = TEST_APIS
         for host, hport, path, use_ssl in apis:
             try:
                 s = socks.socksocket()
 
                 # ───────── proxy 类型设置 ─────────
-                if proto == "socks4":
-                    s.set_proxy(socks.SOCKS4, ip, port)
-                elif proto == "socks5":
-                    s.set_proxy(socks.SOCKS5, ip, port)
-                else:  # http
+                if proto == "http":
                     s.set_proxy(socks.HTTP, ip, port)
 
                 s.settimeout(DEEP_TIMEOUT)
@@ -137,36 +86,6 @@ def deep_check(proto, ip, port):
             except Exception:
                 continue
         return False
-
-    elif proto == "https":
-        # curl 多目标方案
-        urls = [
-            "https://ifconfig.me",
-            "https://httpbin.org/ip",
-            "https://api.ipify.org/?format=json",
-            "https://api.i.pn/json",
-            "https://ipin.io/",
-        ]
-        random.shuffle(urls)  # 随机顺序尝试
-        proxy_str = f"https://{ip}:{port}"
-
-        for url in urls:
-            cmd = [
-                "curl",
-                "-s",
-                "-x", proxy_str,
-                "--proxy-insecure",
-                "--max-time", str(DEEP_TIMEOUT),
-                url
-            ]
-            try:
-                result = subprocess.run(cmd, capture_output=True, text=True)
-                if result.returncode == 0 and result.stdout.strip():
-                    return True  # 成功连通即可
-            except Exception:
-                continue
-        return False
-
     else:
         return False
 
@@ -189,7 +108,7 @@ async def main():
         if not line.strip():
             continue
 
-        proto, ip, port, country = parse_proxy(line)
+        proto, ip, port, country, anon = parse_proxy(line)
         pid = f"{proto}_{ip}_{port}"
 
         record = history.get(pid)
@@ -201,17 +120,15 @@ async def main():
                 "protocol": proto,
                 "country": country,
                 "country_cn": COUNTRY_MAP.get(country, country),
+                "anonymity": anon,
                 "success": 0,
                 "total": 0,
             }
 
         # 每次检测都计入 total
         record["total"] += 1
-
-        if proto == "socks4":
-            latency = socks4_latency(ip, port)
-        else:
-            latency = await check_latency(ip, port)
+        
+        latency = await check_latency(ip, port)
 
         if latency is None:
             history[pid] = record
