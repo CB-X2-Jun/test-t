@@ -1,14 +1,1 @@
-[
-  {
-    "id": "socks4_104.37.135.145_4145",
-    "ip": "104.37.135.145",
-    "port": 4145,
-    "protocol": "socks4",
-    "country": "US",
-    "country_cn": "美国",
-    "success": 1068,
-    "total": 1174,
-    "latency": 139,
-    "last_check": 1781786701
-  }
-]
+[]
