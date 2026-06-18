@@ -2,14 +2,13 @@
 <html lang="zh">
 <head>
 <meta charset="utf-8" />
-<meta name="description" content="这是一个定时更新的 proxy list（代理列表），包含 HTTPS|SOCKS4|SOCKS5 节点。（HTTPS、SOCKS5全都支持SSL，SOCKS4不确定）">
+<meta name="description" content="这是一个定时更新的 proxy list（代理列表），包含 HTTP 节点。（不支持SSL）">
 <meta name="author" content="CB-X2-Jun">
-<title>Proxy List</title>
+<title>Proxy List (HTTP only)</title>
 
 <link rel="stylesheet" href="https://lipis.github.io/flag-icons/css/flag-icons.min.css"/>
 
 <style>
-/* ===================== 亮色模式（原样） ===================== */
 :root {
   --blue: #4aa3df;
   --blue-light: #eaf6fd;
@@ -20,7 +19,6 @@
   --hover: #f8fbfe;
 }
 
-/* ===================== 暗色模式变量覆盖 ===================== */
 body.dark {
   --blue: #5bb3ff;
   --blue-light: #1e2a36;
@@ -84,7 +82,6 @@ h2 { margin: 0 0 16px; color: #2c6fa3; }
   transform: translateX(20px);
 }
 
-/* ===================== 原样式 ===================== */
 .filter {
   background: var(--card);
   padding: 12px 16px;
@@ -150,7 +147,7 @@ button {
   padding: 4px 10px;
   cursor: pointer;
 }
-  /* ===== 批量复制按钮样式 ===== */
+
 .export-btn {
   background: white;
   color: var(--blue);
@@ -164,8 +161,6 @@ button {
   background: var(--blue-light);
 }
 
-
-/* ===================== 进度条 ===================== */
 .bar-wrap {
   margin-top: 4px;
   width: 100%;
@@ -188,19 +183,14 @@ button {
   ☀️ <input type="checkbox" id="themeToggle"> 🌙
 </label>
 
-<h2>🌐 代理列表</h2>
+<h2>🌐 代理列表 (HTTP ONLY)</h2>
 
-<!-- ★ 修改点 1：去掉“数据库中代理数” -->
 <div id="stats" style="margin:8px 0 16px;font-size:14px;">
-  目前可用：—｜
-  HTTP (SSL)：—｜
-  HTTPS (SSL)：—｜
-  SOCKS4：—｜
-  SOCKS5：—｜
-  可用国家数：—
+  目前可用：—｜可用国家数：—
 </div>
 
 <div class="filter">
+
   <div class="select-box">
     国家：
     <select id="countrySelect"><option value="">选择国家</option></select>
@@ -208,21 +198,21 @@ button {
   </div>
 
   <div class="select-box">
-    协议：
-    <select id="protocolSelect">
-      <option value="">选择协议</option>
-      <option value="http">HTTP (SSL)</option>
-      <option value="https">HTTPS (SSL)</option>
-      <option value="socks4">SOCKS4</option>
-      <option value="socks5">SOCKS5</option>
-    </select>
-    <div id="protocolTags" class="tags"></div>
-  </div>
-
-  <div class="select-box">
     端口：
     <select id="portSelect"><option value="">选择端口</option></select>
     <div id="portTags" class="tags"></div>
+  </div>
+
+  <!-- ✅ 新增：匿名筛选 -->
+  <div class="select-box">
+    匿名性：
+    <select id="anonSelect">
+      <option value="">选择匿名性</option>
+      <option value="x">显式</option>
+      <option value="a">匿名</option>
+      <option value="h">高匿名</option>
+    </select>
+    <div id="anonTags" class="tags"></div>
   </div>
 
   <div class="select-box">
@@ -235,22 +225,37 @@ button {
   </div>
 
   <div class="select-box">
-  <button class="export-btn" onclick="copyAll(true)">复制当前所有代理（带协议）</button>
-  <button class="export-btn" onclick="copyAll(false)">复制当前所有代理（不带协议）</button>
+    <button class="export-btn" onclick="copyAll(true)">复制（带协议）</button>
+    <button class="export-btn" onclick="copyAll(false)">复制（不带协议）</button>
   </div>
+
 </div>
 
 <table>
 <thead>
 <tr>
 <th>IP</th><th>端口</th><th>协议</th><th>国家</th>
-<th>延迟</th><th>成功率</th><th>上次检测</th><th>复制</th>
+<th>延迟</th><th>成功率</th><th>匿名性</th><th>上次检测</th><th>复制</th>
 </tr>
 </thead>
 <tbody id="tbody"></tbody>
 </table>
 
 <script>
+let data = [];
+
+const selectedCountries = new Set();
+const selectedPorts = new Set();
+const selectedAnons = new Set();
+
+let sortMethod = 'default';
+
+const anonMap = {
+  x: "显式",
+  a: "匿名",
+  h: "高匿名"
+};
+
 const toggle = document.getElementById('themeToggle');
 if (localStorage.getItem('theme') === 'dark') {
   document.body.classList.add('dark');
@@ -260,12 +265,6 @@ toggle.onchange = () => {
   document.body.classList.toggle('dark', toggle.checked);
   localStorage.setItem('theme', toggle.checked ? 'dark' : 'light');
 };
-
-let data = [];
-const selectedCountries = new Set();
-const selectedProtocols = new Set();
-const selectedPorts = new Set();
-let sortMethod = 'default';
 
 fetch('proxies.json')
   .then(r => r.json())
@@ -278,106 +277,119 @@ fetch('proxies.json')
 function init() {
   [...new Set(data.map(i => i.country_cn))]
     .forEach(c => countrySelect.add(new Option(c, c)));
+
   [...new Set(data.map(i => i.port))]
     .sort((a,b)=>a-b)
     .forEach(p => portSelect.add(new Option(p, p)));
 }
 
-countrySelect.onchange = e => e.target.value && (selectedCountries.add(e.target.value), e.target.value='', renderTags(), render());
-protocolSelect.onchange = e => e.target.value && (selectedProtocols.add(e.target.value), e.target.value='', renderTags(), render());
-portSelect.onchange = e => e.target.value && (selectedPorts.add(e.target.value), e.target.value='', renderTags(), render());
-sortSelect.onchange = e => (sortMethod = e.target.value, render());
+/* ====== 事件 ====== */
 
-function renderTags() {
-  renderTagGroup('countryTags', selectedCountries, true);
-  renderTagGroup('protocolTags', selectedProtocols);
-  renderTagGroup('portTags', selectedPorts);
-}
+countrySelect.onchange = e => {
+  if (!e.target.value) return;
+  selectedCountries.add(e.target.value);
+  e.target.value = '';
+  render();
+};
 
-function renderTagGroup(id, set, withFlag) {
-  const box = document.getElementById(id);
-  box.innerHTML = '';
-  [...set].forEach(v => {
-    const t = document.createElement('div');
-    const code = withFlag ? data.find(i=>i.country_cn===v)?.country : '';
-    t.className = 'tag';
-    t.innerHTML = `${code?`<span class="fi fi-${code.toLowerCase()}"></span>`:''}${v}<span>×</span>`;
-    t.lastChild.onclick = () => (set.delete(v), renderTags(), render());
-    box.appendChild(t);
-  });
-}
+portSelect.onchange = e => {
+  if (!e.target.value) return;
+  selectedPorts.add(e.target.value);
+  e.target.value = '';
+  render();
+};
 
-function rateBar(s,t){ if(!t)return'';const p=Math.min(100,s/t*100);return `<div class="bar-wrap"><div class="bar ${p<=40?'red':p<=70?'yellow':'green'}" style="width:${p}%"></div></div>`;}
-function latencyBar(ms){const p=Math.min(100,ms/5000*100);return `<div class="bar-wrap"><div class="bar ${ms<=500?'green':ms<=1500?'yellow':'red'}" style="width:${p}%"></div></div>`;}
+anonSelect.onchange = e => {
+  if (!e.target.value) return;
+  selectedAnons.add(e.target.value);
+  e.target.value = '';
+  render();
+};
 
-/* ★ 修改点 2：统计里不再出现“数据库中代理数” */
-function updateStats(list) {
-  const available = list.filter(i=>i.latency>0).length;
-  const sslhttp = list.filter(i=>i.protocol==='http').length;
-  const sslhttps = list.filter(i=>i.protocol==='https').length;
-  const socks4 = list.filter(i=>i.protocol==='socks4').length;
-  const socks5 = list.filter(i=>i.protocol==='socks5').length;
-  const countries = new Set(list.filter(i=>i.latency>0).map(i=>i.country)).size;
+sortSelect.onchange = e => {
+  sortMethod = e.target.value;
+  render();
+};
 
-  stats.textContent =
-    `目前可用：${available} ｜ HTTP (SSL)：${sslhttp} | HTTPS (SSL)：${sslhttps} ｜ SOCKS4：${socks4} ｜ SOCKS5：${socks5} ｜ 可用国家数：${countries}`;
-}
+/* ====== 渲染 ====== */
 
 function render() {
   tbody.innerHTML = '';
+
   let list = data.filter(i =>
-    (!selectedCountries.size||selectedCountries.has(i.country_cn)) &&
-    (!selectedProtocols.size||selectedProtocols.has(i.protocol)) &&
-    (!selectedPorts.size||selectedPorts.has(String(i.port)))
+    (!selectedCountries.size || selectedCountries.has(i.country_cn)) &&
+    (!selectedPorts.size || selectedPorts.has(String(i.port))) &&
+    (!selectedAnons.size || selectedAnons.has(i.anonymity))
   );
 
-  if(sortMethod==='latency') list=list.slice().sort((a,b)=>a.latency-b.latency||a.__index-b.__index);
-  if(sortMethod==='success') list=list.slice().sort((a,b)=>(b.success/b.total||0)-(a.success/a.total||0)||a.__index-b.__index);
+  if (sortMethod === 'latency')
+    list = list.slice().sort((a,b)=>a.latency-b.latency||a.__index-b.__index);
+
+  if (sortMethod === 'success')
+    list = list.slice().sort((a,b)=>
+      (b.success/b.total||0)-(a.success/a.total||0)||a.__index-b.__index
+    );
 
   updateStats(list);
 
   list.forEach(i=>{
-    const rate=i.total<3?'新节点 (测试次数小于3)':`${(i.success/i.total*100).toFixed(1)}% (${i.success}/${i.total})`;
+    const rate = i.total < 3
+      ? '新节点'
+      : `${(i.success/i.total*100).toFixed(1)}% (${i.success}/${i.total})`;
+
     tbody.insertAdjacentHTML('beforeend',`
 <tr>
-<td>${i.ip}</td><td>${i.port}</td><td>${i.protocol}</td>
-<td><span class="country"><span class="fi fi-${i.country.toLowerCase()}"></span>${i.country_cn}</span></td>
-<td>${i.latency} ms${latencyBar(i.latency)}</td>
-<td>${rate}${rateBar(i.success,i.total)}</td>
+<td>${i.ip}</td>
+<td>${i.port}</td>
+<td>${i.protocol}</td>
+<td>${i.country_cn}</td>
+<td>${i.latency} ms</td>
+<td>${rate}</td>
+<td>${anonMap[i.anonymity] || i.anonymity}</td>
 <td>${ago(i.last_check)}</td>
 <td><button onclick="copy('${i.ip}:${i.port}')">复制</button></td>
 </tr>`);
   });
 }
 
+function updateStats(list) {
+  const available = list.filter(i=>i.latency>0).length;
+  const countries = new Set(list.map(i=>i.country)).size;
+
+  stats.textContent =
+    `目前可用：${available} ｜ 可用国家数：${countries}`;
+}
+
+/* ====== 工具 ====== */
+
 function getFilteredList() {
   return data.filter(i =>
-    (!selectedCountries.size||selectedCountries.has(i.country_cn)) &&
-    (!selectedProtocols.size||selectedProtocols.has(i.protocol)) &&
-    (!selectedPorts.size||selectedPorts.has(String(i.port)))
+    (!selectedCountries.size || selectedCountries.has(i.country_cn)) &&
+    (!selectedPorts.size || selectedPorts.has(String(i.port))) &&
+    (!selectedAnons.size || selectedAnons.has(i.anonymity))
   );
 }
 
 function copyAll(withProtocol) {
   const list = getFilteredList();
-  if (!list.length) {
-    alert('当前筛选结果为空');
-    return;
-  }
-
-  const lines = list.map(i => {
-    return withProtocol
+  const lines = list.map(i =>
+    withProtocol
       ? `${i.protocol}://${i.ip}:${i.port}`
-      : `${i.ip}:${i.port}`;
-  });
+      : `${i.ip}:${i.port}`
+  );
 
   navigator.clipboard.writeText(lines.join('\n'))
-    .then(() => alert(`已复制 ${lines.length} 条代理`));
+    .then(()=>alert(`已复制 ${lines.length} 条`));
 }
 
+function ago(ts){
+  const s = Date.now()/1000 - ts;
+  return s<60?`${s|0}秒前`:s<3600?`${s/60|0}分钟前`:`${s/3600|0}小时前`;
+}
 
-function ago(ts){const s=Date.now()/1000-ts;return s<60?`${s|0} 秒前`:s<3600?`${s/60|0} 分钟前`:`${s/3600|0} 小时前`;}
-function copy(t){navigator.clipboard.writeText(t).then(()=>alert('已复制 '+t));}
+function copy(t){
+  navigator.clipboard.writeText(t).then(()=>alert('已复制 '+t));
+}
 </script>
 
 </body>
