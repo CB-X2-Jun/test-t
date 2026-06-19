@@ -51,43 +51,35 @@ async def check_latency(ip, port):
 # 第二阶段：深度检测（status-only）
 # ─────────────────────────────
 def deep_check(proto, ip, port):
-    if proto in ("http"):
-        apis = TEST_APIS
-        for host, hport, path, use_ssl in apis:
-            try:
-                s = socks.socksocket()
-
-                # ───────── proxy 类型设置 ─────────
-                if proto == "http":
-                    s.set_proxy(socks.HTTP, ip, port)
-
-                s.settimeout(DEEP_TIMEOUT)
-                s.connect((host, hport))
-
-                if use_ssl:
-                    ctx = ssl.create_default_context()
-                    ss = ctx.wrap_socket(s, server_hostname=host)
-                else:
-                    ss = s
-
-                # ───────── 发送 HTTP 请求 ─────────
-                req = (
-                    f"GET {path} HTTP/1.1\r\n"
-                    f"Host: {host}\r\n"
-                    f"User-Agent: proxy-check\r\n"
-                    f"Connection: close\r\n\r\n"
-                )
-                ss.sendall(req.encode())
-                data = ss.recv(256)
-                ss.close()
-
-                if data and b"200" in data.split(b"\r\n", 1)[0]:
-                    return True
-            except Exception:
-                continue
+    if proto != "http":
         return False
-    else:
-        return False
+
+    import requests
+
+    proxies = {
+        "http": f"http://{ip}:{port}"
+    }
+
+    apis = TEST_APIS
+
+    for host, hport, path, use_ssl in apis:
+        try:
+            url = f"http://{host}{path}"
+
+            r = requests.get(
+                url,
+                proxies=proxies,
+                timeout=DEEP_TIMEOUT
+            )
+
+            # 只要能正常返回 HTTP response 就算成功
+            if r.status_code == 200:
+                return True
+
+        except Exception:
+            continue
+
+    return False
 
 # ─────────────────────────────
 # 主流程
