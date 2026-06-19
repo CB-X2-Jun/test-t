@@ -259,10 +259,12 @@ const anonMap = {
 const stats = document.getElementById('stats');
 
 const toggle = document.getElementById('themeToggle');
+
 if (localStorage.getItem('theme') === 'dark') {
   document.body.classList.add('dark');
   toggle.checked = true;
 }
+
 toggle.onchange = () => {
   document.body.classList.toggle('dark', toggle.checked);
   localStorage.setItem('theme', toggle.checked ? 'dark' : 'light');
@@ -276,23 +278,29 @@ fetch('proxies.json')
     render();
   });
 
+/* =========================
+   初始化
+========================= */
 function init() {
+  // 国家
   [...new Set(data.map(i => i.country_cn))]
     .forEach(c => countrySelect.add(new Option(c, c)));
 
+  // 端口
   [...new Set(data.map(i => i.port))]
     .sort((a,b)=>a-b)
     .forEach(p => portSelect.add(new Option(p, p)));
 }
 
-/* ======================
-   事件绑定
-====================== */
+/* =========================
+   事件绑定（气泡核心）
+========================= */
 
 countrySelect.onchange = e => {
   if (!e.target.value) return;
   selectedCountries.add(e.target.value);
   e.target.value = '';
+  renderTags();
   render();
 };
 
@@ -300,6 +308,7 @@ portSelect.onchange = e => {
   if (!e.target.value) return;
   selectedPorts.add(e.target.value);
   e.target.value = '';
+  renderTags();
   render();
 };
 
@@ -307,6 +316,7 @@ anonSelect.onchange = e => {
   if (!e.target.value) return;
   selectedAnons.add(e.target.value);
   e.target.value = '';
+  renderTags();
   render();
 };
 
@@ -315,9 +325,80 @@ sortSelect.onchange = e => {
   render();
 };
 
-/* ======================
-   渲染
-====================== */
+/* =========================
+   标签（气泡）渲染
+========================= */
+
+function renderTags() {
+  renderTagGroup('countryTags', selectedCountries, true);
+  renderTagGroup('portTags', selectedPorts);
+  renderTagGroup('anonTags', selectedAnons);
+}
+
+function renderTagGroup(id, set, withFlag=false) {
+  const box = document.getElementById(id);
+  box.innerHTML = '';
+
+  [...set].forEach(v => {
+    const t = document.createElement('div');
+    t.className = 'tag';
+
+    let flag = '';
+    if (withFlag) {
+      const item = data.find(i => i.country_cn === v);
+      if (item?.country) {
+        flag = `<span class="fi fi-${item.country.toLowerCase()}"></span>`;
+      }
+    }
+
+    t.innerHTML = `${flag}${v}<span style="margin-left:6px;cursor:pointer;">×</span>`;
+    t.lastChild.onclick = () => {
+      set.delete(v);
+      renderTags();
+      render();
+    };
+
+    box.appendChild(t);
+  });
+}
+
+/* =========================
+   条形图（关键修复）
+========================= */
+
+function rateBar(s, t) {
+  if (!t) return '';
+  const p = Math.min(100, (s / t) * 100);
+
+  let color = 'red';
+  if (p > 70) color = 'green';
+  else if (p > 40) color = 'yellow';
+
+  return `
+    <div class="bar-wrap">
+      <div class="bar ${color}" style="width:${p}%"></div>
+    </div>
+  `;
+}
+
+function latencyBar(ms) {
+  if (!ms) return '';
+  const p = Math.min(100, ms / 5000 * 100);
+
+  let color = 'green';
+  if (ms > 1500) color = 'red';
+  else if (ms > 500) color = 'yellow';
+
+  return `
+    <div class="bar-wrap">
+      <div class="bar ${color}" style="width:${p}%"></div>
+    </div>
+  `;
+}
+
+/* =========================
+   渲染主体
+========================= */
 
 function render() {
   tbody.innerHTML = '';
@@ -339,40 +420,57 @@ function render() {
   updateStats(list);
 
   list.forEach(i => {
+
     const rate = i.total < 3
       ? '新节点'
       : `${(i.success/i.total*100).toFixed(1)}% (${i.success}/${i.total})`;
 
     tbody.insertAdjacentHTML('beforeend', `
 <tr>
-<td>${i.ip}</td>
-<td>${i.port}</td>
-<td>${i.protocol}</td>
-<td>${i.country_cn}</td>
-<td>${i.latency || 0} ms</td>
-<td>${rate}</td>
-<td>${anonMap[i.anonymity] || i.anonymity}</td>
-<td>${ago(i.last_check)}</td>
-<td><button onclick="copy('${i.ip}:${i.port}')">复制</button></td>
+  <td>${i.ip}</td>
+  <td>${i.port}</td>
+  <td>${i.protocol}</td>
+
+  <td>
+    <span class="country">
+      <span class="fi fi-${i.country.toLowerCase()}"></span>
+      ${i.country_cn}
+    </span>
+  </td>
+
+  <td>
+    ${i.latency || 0} ms
+    ${latencyBar(i.latency)}
+  </td>
+
+  <td>
+    ${rate}
+    ${rateBar(i.success, i.total)}
+  </td>
+
+  <td>${anonMap[i.anonymity] || i.anonymity}</td>
+  <td>${ago(i.last_check)}</td>
+
+  <td><button onclick="copy('${i.ip}:${i.port}')">复制</button></td>
 </tr>`);
   });
 }
 
-/* ======================
-   stats（修复关键）
-====================== */
+/* =========================
+   stats
+========================= */
 
 function updateStats(list) {
   const available = list.filter(i => i.latency > 0).length;
-  const countries = new Set(list.map(i => i.country_cn)).size;
+  const countries = new Set(list.map(i => i.country)).size;
 
   stats.textContent =
     `目前可用：${available} ｜ 可用国家数：${countries}`;
 }
 
-/* ======================
-   工具函数
-====================== */
+/* =========================
+   工具
+========================= */
 
 function getFilteredList() {
   return data.filter(i =>
@@ -400,8 +498,9 @@ function copyAll(withProtocol) {
     .then(() => alert(`已复制 ${lines.length} 条代理`));
 }
 
-function ago(ts){
+function ago(ts) {
   if (!ts) return '未知';
+
   const s = Date.now()/1000 - ts;
   return s < 60
     ? `${s|0} 秒前`
@@ -410,7 +509,7 @@ function ago(ts){
       : `${s/3600|0} 小时前`;
 }
 
-function copy(t){
+function copy(t) {
   navigator.clipboard.writeText(t).then(() => alert('已复制 ' + t));
 }
 </script>
