@@ -256,6 +256,8 @@ const anonMap = {
   h: "高匿名"
 };
 
+const stats = document.getElementById('stats');
+
 const toggle = document.getElementById('themeToggle');
 if (localStorage.getItem('theme') === 'dark') {
   document.body.classList.add('dark');
@@ -283,7 +285,9 @@ function init() {
     .forEach(p => portSelect.add(new Option(p, p)));
 }
 
-/* ====== 事件 ====== */
+/* ======================
+   事件绑定
+====================== */
 
 countrySelect.onchange = e => {
   if (!e.target.value) return;
@@ -311,7 +315,9 @@ sortSelect.onchange = e => {
   render();
 };
 
-/* ====== 渲染 ====== */
+/* ======================
+   渲染
+====================== */
 
 function render() {
   tbody.innerHTML = '';
@@ -332,18 +338,18 @@ function render() {
 
   updateStats(list);
 
-  list.forEach(i=>{
+  list.forEach(i => {
     const rate = i.total < 3
       ? '新节点'
       : `${(i.success/i.total*100).toFixed(1)}% (${i.success}/${i.total})`;
 
-    tbody.insertAdjacentHTML('beforeend',`
+    tbody.insertAdjacentHTML('beforeend', `
 <tr>
 <td>${i.ip}</td>
 <td>${i.port}</td>
 <td>${i.protocol}</td>
 <td>${i.country_cn}</td>
-<td>${i.latency} ms</td>
+<td>${i.latency || 0} ms</td>
 <td>${rate}</td>
 <td>${anonMap[i.anonymity] || i.anonymity}</td>
 <td>${ago(i.last_check)}</td>
@@ -352,15 +358,21 @@ function render() {
   });
 }
 
+/* ======================
+   stats（修复关键）
+====================== */
+
 function updateStats(list) {
-  const available = list.filter(i=>i.latency>0).length;
-  const countries = new Set(list.map(i=>i.country)).size;
+  const available = list.filter(i => i.latency > 0).length;
+  const countries = new Set(list.map(i => i.country_cn)).size;
 
   stats.textContent =
     `目前可用：${available} ｜ 可用国家数：${countries}`;
 }
 
-/* ====== 工具 ====== */
+/* ======================
+   工具函数
+====================== */
 
 function getFilteredList() {
   return data.filter(i =>
@@ -372,6 +384,12 @@ function getFilteredList() {
 
 function copyAll(withProtocol) {
   const list = getFilteredList();
+
+  if (!list.length) {
+    alert('当前筛选结果为空');
+    return;
+  }
+
   const lines = list.map(i =>
     withProtocol
       ? `${i.protocol}://${i.ip}:${i.port}`
@@ -379,16 +397,21 @@ function copyAll(withProtocol) {
   );
 
   navigator.clipboard.writeText(lines.join('\n'))
-    .then(()=>alert(`已复制 ${lines.length} 条`));
+    .then(() => alert(`已复制 ${lines.length} 条代理`));
 }
 
 function ago(ts){
+  if (!ts) return '未知';
   const s = Date.now()/1000 - ts;
-  return s<60?`${s|0}秒前`:s<3600?`${s/60|0}分钟前`:`${s/3600|0}小时前`;
+  return s < 60
+    ? `${s|0} 秒前`
+    : s < 3600
+      ? `${s/60|0} 分钟前`
+      : `${s/3600|0} 小时前`;
 }
 
 function copy(t){
-  navigator.clipboard.writeText(t).then(()=>alert('已复制 '+t));
+  navigator.clipboard.writeText(t).then(() => alert('已复制 ' + t));
 }
 </script>
 
