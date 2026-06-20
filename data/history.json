@@ -7,10 +7,10 @@
     "country": "ZW",
     "country_cn": "津巴布韦",
     "anonymity": "h",
-    "success": 5,
-    "total": 9,
-    "latency": 233,
-    "last_check": 1781962019
+    "success": 6,
+    "total": 10,
+    "latency": 1316,
+    "last_check": 1781969285
   },
   {
     "id": "http_41.59.90.170_80",
@@ -20,10 +20,10 @@
     "country": "TZ",
     "country_cn": "坦桑尼亚",
     "anonymity": "h",
-    "success": 9,
-    "total": 9,
-    "latency": 207,
-    "last_check": 1781962019
+    "success": 10,
+    "total": 10,
+    "latency": 226,
+    "last_check": 1781969285
   },
   {
     "id": "http_34.44.49.215_80",
@@ -33,10 +33,10 @@
     "country": "US",
     "country_cn": "美国",
     "anonymity": "h",
-    "success": 9,
-    "total": 9,
-    "latency": 27,
-    "last_check": 1781962019
+    "success": 10,
+    "total": 10,
+    "latency": 13,
+    "last_check": 1781969285
   },
   {
     "id": "http_175.139.233.79_80",
@@ -47,7 +47,7 @@
     "country_cn": "马来西亚",
     "anonymity": "a",
     "success": 7,
-    "total": 9,
+    "total": 10,
     "latency": 4026,
     "last_check": 1781951177
   },
@@ -59,10 +59,10 @@
     "country": "PY",
     "country_cn": "巴拉圭",
     "anonymity": "h",
-    "success": 4,
-    "total": 9,
-    "latency": 178,
-    "last_check": 1781909015
+    "success": 5,
+    "total": 10,
+    "latency": 160,
+    "last_check": 1781969285
   },
   {
     "id": "http_34.81.160.132_80",
@@ -72,9 +72,9 @@
     "country": "TW",
     "country_cn": "台湾",
     "anonymity": "h",
-    "success": 4,
-    "total": 8,
-    "latency": 2223,
-    "last_check": 1781909015
+    "success": 5,
+    "total": 9,
+    "latency": 170,
+    "last_check": 1781969285
   }
 ]
