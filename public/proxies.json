@@ -1,18 +1,5 @@
 [
   {
-    "id": "http_197.221.249.198_80",
-    "ip": "197.221.249.198",
-    "port": 80,
-    "protocol": "http",
-    "country": "ZW",
-    "country_cn": "津巴布韦",
-    "anonymity": "h",
-    "success": 3,
-    "total": 6,
-    "latency": 5366,
-    "last_check": 1781922557
-  },
-  {
     "id": "http_41.59.90.170_80",
     "ip": "41.59.90.170",
     "port": 80,
@@ -20,10 +7,10 @@
     "country": "TZ",
     "country_cn": "坦桑尼亚",
     "anonymity": "h",
-    "success": 6,
-    "total": 6,
-    "latency": 205,
-    "last_check": 1781922557
+    "success": 7,
+    "total": 7,
+    "latency": 213,
+    "last_check": 1781941358
   },
   {
     "id": "http_34.44.49.215_80",
@@ -33,10 +20,10 @@
     "country": "US",
     "country_cn": "美国",
     "anonymity": "h",
-    "success": 6,
-    "total": 6,
-    "latency": 26,
-    "last_check": 1781922557
+    "success": 7,
+    "total": 7,
+    "latency": 32,
+    "last_check": 1781941358
   },
   {
     "id": "http_175.139.233.79_80",
@@ -46,9 +33,9 @@
     "country": "MY",
     "country_cn": "马来西亚",
     "anonymity": "a",
-    "success": 5,
-    "total": 6,
-    "latency": 1901,
-    "last_check": 1781922557
+    "success": 6,
+    "total": 7,
+    "latency": 881,
+    "last_check": 1781941358
   }
 ]
