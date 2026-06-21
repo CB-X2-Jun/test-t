@@ -208,11 +208,12 @@ button {
     匿名性：
     <select id="anonSelect">
       <option value="">选择匿名性</option>
-      <option value="x">显式</option>
+      <option value="x">透明</option>
       <option value="a">匿名</option>
       <option value="h">高匿名</option>
     </select>
     <div id="anonTags" class="tags"></div>
+    注：此处的透明代理不会遭到网关或CloudFlare拦截。
   </div>
 
   <div class="select-box">
@@ -251,7 +252,7 @@ const selectedAnons = new Set();
 let sortMethod = 'default';
 
 const anonMap = {
-  x: "显式",
+  x: "透明",
   a: "匿名",
   h: "高匿名"
 };
